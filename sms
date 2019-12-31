@@ -1,0 +1,62 @@
+#include <SoftwareSerial.h>
+SoftwareSerial mySerial(7, 8); // RX, TX
+
+int flag=0;
+void setup()   
+{
+  pinMode(13, OUTPUT);
+  delay(2000);  //время на инициализацию модуля
+  SIM900power();
+  delay(20000);
+  Serial.begin(9600);  //скорость порта
+  Serial.println("Start");
+  mySerial.begin(9600);
+  mySerial.println("AT+CMGF=1");  //режим кодировки СМС - обычный (для англ.)
+  delay(100);
+  mySerial.println("AT+CSCS=\"GSM\"");  //режим кодировки текста
+  delay(100);      
+}
+
+void loop(){
+   if(digitalRead(2)==HIGH&&flag==0)//если кнопка нажата   
+     {
+      digitalWrite(13,!digitalRead(13));
+      //SIM900power();
+      //delay(20000);
+      sms(String("Alarm"), String("+380668093452"));
+      flag=1;
+      delay(300);
+      digitalWrite(13,!digitalRead(13));
+      flag=1;
+      delay(10000);
+     }
+
+    if(digitalRead(2)==LOW&&flag==1)//если кнопка НЕ нажата
+   {
+      flag=0;//обнуляем переменную flag
+   }
+}
+
+void sms(String text, String phone)  //процедура отправки СМС
+{
+  Serial.println("SMS send started");
+  mySerial.println("AT+CMGS=\"" + phone + "\"");
+  delay(500);
+  mySerial.print(text);
+  delay(500);
+  mySerial.print((char)26);
+  delay(500);
+  Serial.println("SMS send complete");
+  //delay(2000);
+}
+
+void SIM900power()
+{
+  pinMode(9, OUTPUT);
+  digitalWrite(9,LOW);
+  delay(1000);
+  digitalWrite(9,HIGH);
+  delay(2000);
+  digitalWrite(9,LOW);
+  delay(1000);
+}
